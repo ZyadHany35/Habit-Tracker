@@ -65,22 +65,7 @@
       margin-bottom: 5px;
       text-align: left;
     }
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #2a7ae2;
-      color: white;
-      font-size: 1em;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+
     button:hover {
       background: #1c5bbf;
     }
@@ -90,7 +75,8 @@
       background: #f1f5f9;
       border-radius: 8px;
       margin-top: 20px;
-      padding: 10px;
+      padding: 10px 15px; /* 👈 زودت padding يمين وشمال */
+      box-sizing: border-box;
     }
     .collapsible-header {
       display: flex;
@@ -105,11 +91,35 @@
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease;
+      padding-left: 5px;   /* 👈 padding داخلي */
+      padding-right: 5px;
+      box-sizing: border-box;
     }
     .collapsible.open .collapsible-content {
-      max-height: 500px; /* كفاية تفتح كل الفورم */
+      max-height: 500px;
       margin-top: 10px;
     }
+
+    input {
+      width: 100%;
+      padding: 10px; /* 👈 خليته مريح أكتر */
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%; /* 👈 زرار ياخد العرض كله */
+      padding: 12px;
+      border: none;
+      background: #2a7ae2;
+      color: white;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
     .arrow {
       transition: transform 0.3s;
     }
@@ -128,21 +138,18 @@
         <div class="block-title days-title">Days</div>
         <p id="daysDone">Done: 0</p>
         <p id="daysLeft">Left: 0</p>
-        <p id="daysNext">Next Goal: 0</p>
         <p id="daysTarget">From 0 Days</p>
       </div>
       <div class="progress-item">
         <div class="block-title weeks-title">Weeks</div>
         <p id="weeksDone">Done: 0</p>
         <p id="weeksLeft">Left: 0</p>
-        <p id="weeksNext">Next Goal: 0</p>
         <p id="weeksTarget">From 0 Weeks</p>
       </div>
       <div class="progress-item">
         <div class="block-title months-title">Months</div>
         <p id="monthsDone">Done: 0</p>
         <p id="monthsLeft">Left: 0</p>
-        <p id="monthsNext">Next Goal: 0</p>
         <p id="monthsTarget">From 0 Months</p>
       </div>
     </div>
@@ -177,25 +184,50 @@
       document.getElementById("habitForm").classList.toggle("open");
     }
 
-    function formatDays(days) {
+    function formatDays(days, isLeft=false) {
       const d = Math.floor(days);
-      const h = Math.floor((days - d) * 24);
-      return `${d} Days : ${h} Hours`;
+      let h = (days - d) * 24;
+
+      if (isLeft) {
+        h = Math.ceil(h);
+      } else {
+        h = Math.floor(h);
+      }
+
+      return `${d} D : ${h} H`;
     }
-    function formatWeeks(weeks) {
+
+    function formatWeeks(weeks, isLeft=false) {
       const w = Math.floor(weeks);
-      const d = Math.floor((weeks - w) * 7);
-      return `${w} Weeks : ${d} Days`;
+      let d = (weeks - w) * 7;
+
+      if (isLeft) {
+        d = Math.ceil(d);
+      } else {
+        d = Math.floor(d);
+      }
+
+      return `${w} W : ${d} D`;
     }
-    function formatMonths(months) {
+
+    function formatMonths(months, isLeft=false) {
       const m = Math.floor(months);
-      const d = Math.floor((months - m) * 30);
-      return `${m} Months : ${d} Days`;
+      let d = (months - m) * 30;
+
+      if (isLeft) {
+        d = Math.ceil(d);
+      } else {
+        d = Math.floor(d);
+      }
+
+      return `${m} M : ${d} D`;
     }
+
 
     function saveHabit() {
       const title = document.getElementById("title").value;
       const start = new Date(document.getElementById("start").value);
+      start.setHours(0, 0, 0, 0);
       const target = parseInt(document.getElementById("target").value);
 
       if (!title || !start || !target) {
@@ -206,15 +238,16 @@
       const now = new Date();
       const diffTime = now - start;
       const diffDays = diffTime / (1000 * 3600 * 24);
+      const allWeeks = Math.round(target/7);
+      
+      const doneDays = formatDays(diffDays, false);
+      const leftDays = formatDays(Math.max(target - diffDays, 0), true);
 
-      const doneDays = formatDays(diffDays);
-      const leftDays = formatDays(Math.max(target - diffDays, 0));
+      const doneWeeks = formatWeeks(diffDays / 7, false);
+      const leftWeeks = formatWeeks(allWeeks - (diffDays / 7), true);
 
-      const doneWeeks = formatWeeks(diffDays / 7);
-      const leftWeeks = formatWeeks(Math.max(target/7 - diffDays/7, 0));
-
-      const doneMonths = formatMonths(diffDays / 30);
-      const leftMonths = formatMonths(Math.max(target/30 - diffDays/30, 0));
+      const doneMonths = formatMonths(diffDays / 30, false);
+      const leftMonths = formatMonths(Math.max(target/30 - diffDays/30, 0), true);
 
       const percent = ((diffDays / target) * 100).toFixed(1);
       const endDate = new Date(start);
@@ -222,33 +255,31 @@
 
       const hoursPassedToday = (diffDays - Math.floor(diffDays)) * 24;
       const hoursLeft = Math.ceil(24 - hoursPassedToday);
-      const nextDayGoal = `${hoursLeft} Hours`;
+
 
       const daysPassedThisWeek = diffDays % 7;
       const daysLeftNextWeek = Math.ceil(7 - daysPassedThisWeek);
-      const nextWeekGoal = `${daysLeftNextWeek} Days`;
 
       const daysPassedThisMonth = diffDays % 30;
       const daysLeftNextMonth = Math.ceil(30 - daysPassedThisMonth);
-      const nextMonthGoal = `${daysLeftNextMonth} Days`;
 
       document.getElementById("habitTitle").innerText = title;
       document.getElementById("startDate").innerText = "Started At: " + start.toDateString();
 
       document.getElementById("daysDone").innerText = "Done: " + doneDays;
       document.getElementById("daysLeft").innerText = "Left: " + leftDays;
-      document.getElementById("daysNext").innerText = "Next Goal: " + nextDayGoal;
+
       document.getElementById("daysTarget").innerText = "From " + target + " Days";
 
       document.getElementById("weeksDone").innerText = "Done: " + doneWeeks;
       document.getElementById("weeksLeft").innerText = "Left: " + leftWeeks;
-      document.getElementById("weeksNext").innerText = "Next Goal: " + nextWeekGoal;
-      document.getElementById("weeksTarget").innerText = "From " + Math.floor(target/7) + " Weeks";
+
+      document.getElementById("weeksTarget").innerText = "From " + allWeeks + " Weeks";
 
       document.getElementById("monthsDone").innerText = "Done: " + doneMonths;
       document.getElementById("monthsLeft").innerText = "Left: " + leftMonths;
-      document.getElementById("monthsNext").innerText = "Next Goal: " + nextMonthGoal;
-      document.getElementById("monthsTarget").innerText = "From " + Math.floor(target/30) + " Months";
+
+      document.getElementById("monthsTarget").innerText = "From " + (target/30) + " Months";
 
       document.getElementById("percentDone").innerText = "Progress: " + percent + "%";
       document.getElementById("endDate").innerText = "Ends At: " + endDate.toDateString();
