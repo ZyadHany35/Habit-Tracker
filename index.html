@@ -314,7 +314,7 @@
       document.getElementById("monthsDone").innerText = "Done: " + doneMonths;
       document.getElementById("monthsLeft").innerText = "Left: " + leftMonths;
 
-      document.getElementById("monthsTarget").innerText = "From " + (target/30) + " Months";
+      document.getElementById("monthsTarget").innerText = "From " + (target/30).toFixed(2) + " Months";
 
       document.getElementById("percentDone").innerText = "Progress: " + percent + "%";
       document.getElementById("endDate").innerText = "Ends At: " + endDate.toDateString();
@@ -350,3 +350,4 @@
   </script>
 </body>
 </html>
+
