@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Habit Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f8fb;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 580px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 10px;
+      color: #2a7ae2;
+    }
+    .row {
+      margin: 15px 0;
+    }
+    .progress-box {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .progress-item {
+      flex: 1;
+      padding: 12px;
+      margin: 0 5px;
+      background: #eef4fa;
+      border-radius: 10px;
+      font-size: 0.9em;
+    }
+    .block-title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding: 6px;
+      border-radius: 8px;
+      color: white;
+    }
+    .days-title { background: #2a7ae2; }
+    .weeks-title { background: #28a745; }
+    .months-title { background: #ff9800; }
+
+    .percent {
+      margin: 20px 0;
+      font-size: 1.2em;
+      color: #2a7ae2;
+      font-weight: bold;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      text-align: left;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #2a7ae2;
+      color: white;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1c5bbf;
+    }
+
+    /* collapsible form */
+    .collapsible {
+      background: #f1f5f9;
+      border-radius: 8px;
+      margin-top: 20px;
+      padding: 10px;
+    }
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: bold;
+      color: #2a7ae2;
+      font-size: 1.1em;
+    }
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .collapsible.open .collapsible-content {
+      max-height: 500px; /* كفاية تفتح كل الفورم */
+      margin-top: 10px;
+    }
+    .arrow {
+      transition: transform 0.3s;
+    }
+    .collapsible.open .arrow {
+      transform: rotate(90deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="habitTitle">Habit Tracker</h2>
+    <p id="startDate"></p>
+
+    <div class="progress-box">
+      <div class="progress-item">
+        <div class="block-title days-title">Days</div>
+        <p id="daysDone">Done: 0</p>
+        <p id="daysLeft">Left: 0</p>
+        <p id="daysNext">Next Goal: 0</p>
+        <p id="daysTarget">From 0 Days</p>
+      </div>
+      <div class="progress-item">
+        <div class="block-title weeks-title">Weeks</div>
+        <p id="weeksDone">Done: 0</p>
+        <p id="weeksLeft">Left: 0</p>
+        <p id="weeksNext">Next Goal: 0</p>
+        <p id="weeksTarget">From 0 Weeks</p>
+      </div>
+      <div class="progress-item">
+        <div class="block-title months-title">Months</div>
+        <p id="monthsDone">Done: 0</p>
+        <p id="monthsLeft">Left: 0</p>
+        <p id="monthsNext">Next Goal: 0</p>
+        <p id="monthsTarget">From 0 Months</p>
+      </div>
+    </div>
+
+    <div class="percent" id="percentDone">Progress: 0%</div>
+    <p id="endDate"></p>
+
+    <!-- collapsible form -->
+    <div class="collapsible" id="habitForm">
+      <div class="collapsible-header" onclick="toggleForm()">
+        Habit Settings <span class="arrow">▶</span>
+      </div>
+      <div class="collapsible-content">
+        <div class="row">
+          <label for="title">Habit Title</label>
+          <input type="text" id="title" placeholder="Enter habit title">
+          
+          <label for="start">Start Date</label>
+          <input type="date" id="start">
+          
+          <label for="target">Target (days)</label>
+          <input type="number" id="target" placeholder="Enter target days">
+          
+          <button onclick="saveHabit()">Save Habit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleForm() {
+      document.getElementById("habitForm").classList.toggle("open");
+    }
+
+    function formatDays(days) {
+      const d = Math.floor(days);
+      const h = Math.floor((days - d) * 24);
+      return `${d} Days : ${h} Hours`;
+    }
+    function formatWeeks(weeks) {
+      const w = Math.floor(weeks);
+      const d = Math.floor((weeks - w) * 7);
+      return `${w} Weeks : ${d} Days`;
+    }
+    function formatMonths(months) {
+      const m = Math.floor(months);
+      const d = Math.floor((months - m) * 30);
+      return `${m} Months : ${d} Days`;
+    }
+
+    function saveHabit() {
+      const title = document.getElementById("title").value;
+      const start = new Date(document.getElementById("start").value);
+      const target = parseInt(document.getElementById("target").value);
+
+      if (!title || !start || !target) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      const now = new Date();
+      const diffTime = now - start;
+      const diffDays = diffTime / (1000 * 3600 * 24);
+
+      const doneDays = formatDays(diffDays);
+      const leftDays = formatDays(Math.max(target - diffDays, 0));
+
+      const doneWeeks = formatWeeks(diffDays / 7);
+      const leftWeeks = formatWeeks(Math.max(target/7 - diffDays/7, 0));
+
+      const doneMonths = formatMonths(diffDays / 30);
+      const leftMonths = formatMonths(Math.max(target/30 - diffDays/30, 0));
+
+      const percent = ((diffDays / target) * 100).toFixed(1);
+      const endDate = new Date(start);
+      endDate.setDate(start.getDate() + target);
+
+      const hoursPassedToday = (diffDays - Math.floor(diffDays)) * 24;
+      const hoursLeft = Math.ceil(24 - hoursPassedToday);
+      const nextDayGoal = `${hoursLeft} Hours`;
+
+      const daysPassedThisWeek = diffDays % 7;
+      const daysLeftNextWeek = Math.ceil(7 - daysPassedThisWeek);
+      const nextWeekGoal = `${daysLeftNextWeek} Days`;
+
+      const daysPassedThisMonth = diffDays % 30;
+      const daysLeftNextMonth = Math.ceil(30 - daysPassedThisMonth);
+      const nextMonthGoal = `${daysLeftNextMonth} Days`;
+
+      document.getElementById("habitTitle").innerText = title;
+      document.getElementById("startDate").innerText = "Started At: " + start.toDateString();
+
+      document.getElementById("daysDone").innerText = "Done: " + doneDays;
+      document.getElementById("daysLeft").innerText = "Left: " + leftDays;
+      document.getElementById("daysNext").innerText = "Next Goal: " + nextDayGoal;
+      document.getElementById("daysTarget").innerText = "From " + target + " Days";
+
+      document.getElementById("weeksDone").innerText = "Done: " + doneWeeks;
+      document.getElementById("weeksLeft").innerText = "Left: " + leftWeeks;
+      document.getElementById("weeksNext").innerText = "Next Goal: " + nextWeekGoal;
+      document.getElementById("weeksTarget").innerText = "From " + Math.floor(target/7) + " Weeks";
+
+      document.getElementById("monthsDone").innerText = "Done: " + doneMonths;
+      document.getElementById("monthsLeft").innerText = "Left: " + leftMonths;
+      document.getElementById("monthsNext").innerText = "Next Goal: " + nextMonthGoal;
+      document.getElementById("monthsTarget").innerText = "From " + Math.floor(target/30) + " Months";
+
+      document.getElementById("percentDone").innerText = "Progress: " + percent + "%";
+      document.getElementById("endDate").innerText = "Ends At: " + endDate.toDateString();
+
+      const habit = { title, start: start.toISOString(), target };
+      localStorage.setItem("habit", JSON.stringify(habit));
+    }
+
+    function loadHabit() {
+      const habit = JSON.parse(localStorage.getItem("habit"));
+      if (habit) {
+        document.getElementById("title").value = habit.title;
+        document.getElementById("start").value = habit.start.split("T")[0];
+        document.getElementById("target").value = habit.target;
+        saveHabit();
+      }
+    }
+
+    window.onload = loadHabit;
+  </script>
+</body>
+</html>
