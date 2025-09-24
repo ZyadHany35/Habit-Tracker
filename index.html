@@ -126,6 +126,34 @@
     .collapsible.open .arrow {
       transform: rotate(90deg);
     }
+
+    .race-track {
+      position: relative;
+      height: 50px;
+      margin: 30px 0;
+      background: #eee;
+      border-radius: 25px;
+      overflow: hidden;
+    }
+
+    .runner {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      transition: left 0.5s ease;
+      transform: translate(-50%, -50%) scaleX(-1);
+    }
+
+    .finish {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      font-size: 2em;
+    }
+
   </style>
 </head>
 <body>
@@ -155,6 +183,12 @@
     </div>
 
     <div class="percent" id="percentDone">Progress: 0%</div>
+
+    <div class="race-track">
+      <div class="runner">🏃</div>
+      <div class="finish">🏁</div>
+    </div>
+
     <p id="endDate"></p>
 
     <!-- collapsible form -->
@@ -230,6 +264,7 @@
       start.setHours(0, 0, 0, 0);
       const target = parseInt(document.getElementById("target").value);
 
+
       if (!title || !start || !target) {
         alert("Please fill all fields");
         return;
@@ -284,15 +319,28 @@
       document.getElementById("percentDone").innerText = "Progress: " + percent + "%";
       document.getElementById("endDate").innerText = "Ends At: " + endDate.toDateString();
 
-      const habit = { title, start: start.toISOString(), target };
+      const habit = { 
+        title, 
+        start: document.getElementById("start").value,
+        target 
+      };
       localStorage.setItem("habit", JSON.stringify(habit));
+
+
+      // Update runner position on track
+      const runner = document.querySelector(".runner");
+      const track = document.querySelector(".race-track");
+      const trackWidth = track.offsetWidth - 50; 
+      let progress = Math.min(percent, 100);
+      runner.style.left = (progress / 100) * trackWidth + "px";
+
     }
 
     function loadHabit() {
       const habit = JSON.parse(localStorage.getItem("habit"));
       if (habit) {
         document.getElementById("title").value = habit.title;
-        document.getElementById("start").value = habit.start.split("T")[0];
+        document.getElementById("start").value = habit.start;
         document.getElementById("target").value = habit.target;
         saveHabit();
       }
